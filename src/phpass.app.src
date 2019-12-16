@@ -1,0 +1,18 @@
+{application, phpass,
+    [
+        {description, "A simple implementation of PHPass’ Portable Hash."},
+        {vsn, "0.1.0"},
+        {registered, []},
+        {applications, [
+            kernel,
+            stdlib
+        ]},
+        {mod, {phpass_app, []}},
+        {env, []},
+
+        {licenses, ["MIT"]},
+        {links, [
+            {"Github", "https://github.com/ostinelli/phpass"}
+        ]}
+    ]
+}.
