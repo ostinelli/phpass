@@ -65,34 +65,32 @@ generate_salt(RandBytes) ->
     <<"$P$", S1, S2/binary>>.
 
 crypt(Password, Setting) ->
-    Out0 = case binary:part(Setting, 0, 2) of
+    Out = case binary:part(Setting, 0, 2) of
         <<"*0">> -> <<"*1">>;
         _ -> <<"*0">>
     end,
     Iter = index_of(binary:at(Setting, 3), ?ITOA64),
+    crypt(Password, Setting, Out, Iter).
 
-    case Iter >= 8 andalso Iter =< 30 of
+crypt(Password, Setting, Out, Iter) when Iter >= 8 andalso Iter =< 30 ->
+    Count = 1 bsl Iter,
+    Salt = binary:part(Setting, 4, 8),
+    case size(Salt) =:= 8 of
         false ->
-            Out0;
+            Out;
 
         true ->
-            Count = 1 bsl Iter,
-            Salt = binary:part(Setting, 4, 8),
-            case size(Salt) =:= 8 of
-                false ->
-                    Out0;
-
-                true ->
-                    Hash0 = crypto:hash(md5, <<Salt/binary, Password/binary>>),
-                    Hash = lists:foldl(fun(_C, Acc) ->
-                        crypto:hash(md5, <<Acc/binary, Password/binary>>)
-                    end, Hash0, lists:reverse(lists:seq(1, Count))),
-
-                    S1 = binary:part(Setting, 0, 12),
-                    S2 = encode64(Hash, 16),
-                    <<S1/binary, S2/binary>>
-            end
-    end.
+            %% loop hash
+            Hash0 = crypto:hash(md5, <<Salt/binary, Password/binary>>),
+            Hash = lists:foldl(fun(_C, Acc) ->
+                crypto:hash(md5, <<Acc/binary, Password/binary>>)
+            end, Hash0, lists:reverse(lists:seq(1, Count))),
+            %% build hash
+            S1 = binary:part(Setting, 0, 12),
+            S2 = encode64(Hash, 16),
+            <<S1/binary, S2/binary>>
+    end;
+crypt(_, _, Out, _) -> Out.
 
 index_of(Item, Subject) -> index_of(Item, Subject, 1).
 index_of(_, <<>>, _) -> not_found;
@@ -113,27 +111,25 @@ encode64(Input, Count, Cursor, Out) when Cursor < Count ->
     end,
     B2 = binary:at(?ITOA64, (Value1 bsr 6) band 16#3f),
     Out2 = <<Out1/binary, B2>>,
+    encode64(Input, Count, Cursor1, Value1, Out2);
+encode64(_, _, _, Out) -> Out.
+
+encode64(Input, Count, Cursor, Value, Out) when Cursor < Count ->
+    Cursor1 = Cursor + 1,
+    Value2 = case Cursor1 < Count of
+        true -> Value bor (binary:at(Input, Cursor1) bsl 16);
+        false -> Value
+    end,
+    B3 = binary:at(?ITOA64, (Value2 bsr 12) band 16#3f),
+    Out1 = <<Out/binary, B3>>,
     case Cursor1 >= Count of
         true ->
-            Out2;
+            Out1;
 
         false ->
             Cursor2 = Cursor1 + 1,
-            Value2 = case Cursor2 < Count of
-                true -> Value1 bor (binary:at(Input, Cursor2) bsl 16);
-                false -> Value1
-            end,
-            B3 = binary:at(?ITOA64, (Value2 bsr 12) band 16#3f),
-            Out3 = <<Out2/binary, B3>>,
-            case Cursor2 >= Count of
-                true ->
-                    Out3;
-
-                false ->
-                    Cursor3 = Cursor2 + 1,
-                    B4 = binary:at(?ITOA64, (Value2 bsr 18) band 16#3f),
-                    Out4 = <<Out3/binary, B4>>,
-                    encode64(Input, Count, Cursor3, Out4)
-            end
+            B4 = binary:at(?ITOA64, (Value2 bsr 18) band 16#3f),
+            Out2 = <<Out1/binary, B4>>,
+            encode64(Input, Count, Cursor2, Out2)
     end;
-encode64(_, _, _, Out) -> Out.
+encode64(_, _, _, _, Out) -> Out.
