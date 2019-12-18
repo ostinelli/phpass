@@ -85,6 +85,10 @@ Types:
     Hash = binary()
 ```
 
+## Implementation details
+This is a port of the ruby implementation [phpass-ruby](https://github.com/uu59/phpass-ruby).
+
+
 ## Contributing
 So you want to contribute? That's great! Please follow the guidelines below. It will make it easier to get merged in.
 
