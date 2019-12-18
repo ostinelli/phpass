@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ostinelli/phpass.svg?branch=master)](https://travis-ci.org/ostinelli/phpass)
+[![Build Status](https://travis-ci.org/ostinelli/phpass.svg?branch=master)](https://travis-ci.org/ostinelli/phpass) [![Hex pm](https://img.shields.io/hexpm/v/phpass.svg)](https://hex.pm/packages/phpass)
 
 # PHPass
 PHPass is an Erlang port of the [Portable PHP password hashing framework](https://www.openwall.com/phpass/). Only the `md5` hashing method is currently supported.
