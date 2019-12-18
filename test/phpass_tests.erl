@@ -49,10 +49,20 @@ hash_and_check_generation_when_empty_success_test() ->
     Hash = phpass:hash(Password),
     ?assertEqual(true, phpass:check(Password, Hash)).
 
-hash_and_check_known_test() ->
+hash_and_check_generation_higher_rounds_success_test() ->
+    Password = <<"stronger-hashed-pass">>,
+    Rounds = 15,
+    Hash = phpass:hash(Password, Rounds),
+    ?assertEqual(true, phpass:check(Password, Hash)).
+
+hash_and_check_known_success_test() ->
     ?assertEqual(true, phpass:check(<<"mypass">>, <<"$P$BNzlTqiPcLNUyBX3UsPCYKXhAeymcq.">>)),
     ?assertEqual(true, phpass:check(<<"mypass-other/!">>, <<"$P$BxdXqDhmnDF0M.AU0KlM9mU5IpagZ4.">>)),
     ?assertEqual(true, phpass:check(<<"unicode-åäö-pass"/utf8>>, <<"$P$Br.78pUezr/zPxQdA81h41JdHtf9Kh1">>)).
+
+hash_and_check_known_higher_rounds_success_test() ->
+    ?assertEqual(true, phpass:check(<<"stronger-hashed-pass">>, <<"$P$IiJ9I1lFpn2jSNCHGvKmz6LSNJevlD.">>)),
+    ?assertEqual(true, phpass:check(<<"stronger-hashed-你好"/utf8>>, <<"$P$I8zN.waaChQ3CJa2NbYgDpdtOqG6F7/">>)).
 
 hash_and_check_known_fail_test() ->
     Password = <<"mypass">>,

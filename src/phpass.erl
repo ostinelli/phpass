@@ -27,11 +27,11 @@
 
 %% API
 -export([start/0, stop/0]).
--export([hash/1]).
+-export([hash/1, hash/2]).
 -export([check/2]).
 
 %% macro
--define(ITERATIONS, 8).
+-define(DEFAULT_ROUNDS, 13).
 -define(ITOA64, <<"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz">>).
 
 %% ===================================================================
@@ -48,7 +48,11 @@ stop() ->
 
 -spec hash(Password :: binary()) -> Hash :: binary().
 hash(Password) when is_binary(Password) ->
-    crypt(Password, generate_salt()).
+    crypt(Password, generate_salt(?DEFAULT_ROUNDS)).
+
+-spec hash(Password :: binary(), Rounds :: non_neg_integer()) -> Hash :: binary().
+hash(Password, Rounds) when is_binary(Password) andalso Rounds >= 7 andalso Rounds =< 30 ->
+    crypt(Password, generate_salt(Rounds)).
 
 -spec check(Password :: binary(), Hash :: binary()) -> boolean().
 check(Password, Hash) when is_binary(Password) andalso is_binary(Hash) ->
@@ -60,10 +64,10 @@ check(Password, Hash) when is_binary(Password) andalso is_binary(Hash) ->
 %% ===================================================================
 %% Internal
 %% ===================================================================
--spec generate_salt() -> Salt :: binary().
-generate_salt() ->
+-spec generate_salt(Rounds :: non_neg_integer()) -> Salt :: binary().
+generate_salt(Rounds) ->
     RandBytes = crypto:strong_rand_bytes(6),
-    S1 = binary:at(?ITOA64, ?ITERATIONS + 5),
+    S1 = binary:at(?ITOA64, Rounds),
     S2 = encode64(RandBytes, 6),
     <<"$P$", S1, S2/binary>>.
 
