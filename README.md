@@ -86,7 +86,7 @@ Types:
 ```
 
 ## Implementation details
-This is a port of the ruby implementation [phpass-ruby](https://github.com/uu59/phpass-ruby).
+This is a port of the ruby implementation [phpass-ruby](https://github.com/uu59/phpass-ruby). See original PHPass at [Openwall](https://www.openwall.com/phpass/).
 
 
 ## Contributing
